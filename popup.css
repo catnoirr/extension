@@ -1,0 +1,112 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 350px;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  padding: 20px;
+  background: linear-gradient(to right, #f9f9f9, #eaeaea);
+}
+
+h1 {
+  color: #333;
+  font-size: 20px;
+  margin-top: 0;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  color: #444;
+}
+
+input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 5px;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #3367d6;
+}
+
+.instructions {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.instructions p {
+  margin-top: 0;
+  font-weight: bold;
+}
+
+.instructions ol {
+  padding-left: 20px;
+  margin-bottom: 15px;
+}
+
+.instructions li {
+  margin-bottom: 5px;
+}
+
+.note {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 0;
+}
+
+.note a {
+  color: #4285f4;
+  text-decoration: none;
+}
+
+.note a:hover {
+  text-decoration: underline;
+}
+
+#status-message {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.success {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.error {
+  background-color: #fce8e6;
+  color: #c5221f;
+} 
