@@ -37,11 +37,6 @@ let selectedText = '';
 let apiKey = 'AIzaSyBGkLKichFF6x8SeV6uMmFu2oC9wgjk_tk';
 let isTabPressed = false;
 
-// Debug info to confirm elements exist
-console.log("Extension initialized");
-console.log("Answer display element created:", answerDisplay !== null);
-console.log("Selection popover element created:", selectionPopover !== null);
-
 // Load API key from storage
 chrome.storage.sync.get(['geminiApiKey'], function(result) {
   if (result.geminiApiKey) {
@@ -70,8 +65,6 @@ document.addEventListener('keydown', function(e) {
     e.preventDefault(); // Prevent default behavior
     e.stopPropagation(); // Stop event from bubbling up
     
-    console.log("Alt+E shortcut detected with selected text");
-    
     // Hide selection popover
     selectionPopover.style.display = 'none';
     
@@ -85,8 +78,6 @@ document.addEventListener('keydown', function(e) {
 // Separate handler for Tab key (since it's more problematic)
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Tab' && selectedText && selectedText.length > 3) {
-    console.log("Tab key detected with selected text");
-    
     // Only prevent default if we can handle this
     if (selectionPopover.style.display === 'block') {
       e.preventDefault();
@@ -111,8 +102,6 @@ document.addEventListener('dblclick', function(e) {
     selectedText = selection.toString().trim();
     
     if (selectedText && selectedText.length > 3) {
-      console.log("Double-click detected with text selection:", selectedText);
-      
       // Hide selection popover
       selectionPopover.style.display = 'none';
       
@@ -162,8 +151,6 @@ document.getElementById('close-answer').addEventListener('click', function() {
 // Listen for messages from background script (context menu)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "getQuickAnswer" && message.text) {
-    console.log("Received context menu request for:", message.text);
-    
     // Set as current selection
     selectedText = message.text;
     
@@ -191,8 +178,6 @@ async function getAnswer(text) {
   }
   
   try {
-    console.log('Sending request to Gemini API for answer...');
-    
     // Using a direct approach for better results
     const prompt = `I need ONLY the correct answer to this aptitude problem. No explanations.
 
@@ -229,16 +214,13 @@ FORMAT: Your response must ONLY contain the letter or number or word that is the
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Response Error:', response.status, errorText);
       throw new Error(`API error: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log('API Response for answer:', data);
     
     if (data.candidates && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
       const rawResponse = data.candidates[0].content.parts[0].text.trim();
-      console.log("Raw response:", rawResponse);
       
       // Extract answer with a clearly defined pattern
       let answer = rawResponse;
@@ -251,8 +233,6 @@ FORMAT: Your response must ONLY contain the letter or number or word that is the
         .replace(/^\s*-\s*/, '')
         .replace(/\.$/, '')
         .trim();
-      
-      console.log("Cleaned answer:", answer);
       
       // If it's a letter, make it uppercase
       if (/^[A-D]$/i.test(answer)) {
@@ -277,7 +257,6 @@ FORMAT: Your response must ONLY contain the letter or number or word that is the
       throw new Error('Invalid response');
     }
   } catch (error) {
-    console.error('Error getting answer:', error);
     // Only show errors if they're critical
     if (error.message.includes('API error') || error.message.includes('Invalid response')) {
       document.querySelector('.answer-content').innerHTML = `
@@ -301,8 +280,6 @@ async function getExplanation(text) {
   }
   
   try {
-    console.log('Sending request to Gemini API...');
-    
     // Improved prompt for more accurate aptitude explanations
     const prompt = `You are an expert aptitude test solver analyzing this question from an exam or quiz.
 
@@ -340,12 +317,10 @@ Make your explanation clear, precise, and mathematically accurate.`;
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Response Error:', response.status, errorText);
       throw new Error(`API responded with status ${response.status}: ${errorText}`);
     }
     
     const data = await response.json();
-    console.log('API Response:', data);
     
     if (data.candidates && data.candidates[0].content.parts && data.candidates[0].content.parts[0].text) {
       const explanation = data.candidates[0].content.parts[0].text;
@@ -378,11 +353,9 @@ Make your explanation clear, precise, and mathematically accurate.`;
       
       document.getElementById('explanation-content').innerHTML = formattedExplanation;
     } else {
-      console.error('Invalid response structure:', data);
       throw new Error('Invalid response from API: Missing expected data structure');
     }
   } catch (error) {
-    console.error('Error in getExplanation:', error);
     document.getElementById('explanation-content').innerHTML = `
       <div class="error-message">
         Error getting explanation: ${error.message}
@@ -395,7 +368,6 @@ Make your explanation clear, precise, and mathematically accurate.`;
 function showAnswerDisplay() {
   // Force the display to be created if it somehow doesn't exist
   if (!document.querySelector('.answer-display')) {
-    console.log("Re-creating answer display element");
     const newAnswerDisplay = document.createElement('div');
     newAnswerDisplay.className = 'answer-display';
     newAnswerDisplay.style.zIndex = '99999'; 
@@ -451,12 +423,6 @@ function showAnswerDisplay() {
   if (window.autoHideTimer) {
     clearTimeout(window.autoHideTimer);
   }
-  
-  // Log visibility status for debugging
-  console.log("Answer display should be visible now:", 
-    answerDisplay.style.display, 
-    window.getComputedStyle(answerDisplay).display
-  );
 }
 
 // New function to hide with animation
