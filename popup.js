@@ -1,43 +1,78 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Elements
-  const apiKeyInput = document.getElementById('api-key');
-  const saveBtn = document.getElementById('save-btn');
   const statusMessage = document.getElementById('status-message');
+  const selectionToggle = document.getElementById('selection-toggle');
+  const toggleStatus = document.getElementById('toggle-status');
+  const forceEnableToggle = document.getElementById('force-enable-toggle');
+  const forceStatus = document.getElementById('force-status');
   
-  // Load saved API key when popup opens
-  loadApiKey();
+  // Load states when popup opens
+  loadSelectionToggleState();
+  loadForceEnableState();
   
-  // Add event listener to save button
-  saveBtn.addEventListener('click', function() {
-    const apiKey = apiKeyInput.value.trim();
-    if (apiKey) {
-      saveApiKey(apiKey);
-    } else {
-      showStatus('Please enter a valid API key', 'error');
-    }
+  // Add event listener for selection toggle
+  selectionToggle.addEventListener('change', function() {
+    saveSelectionToggleState(selectionToggle.checked);
+    toggleStatus.textContent = selectionToggle.checked ? 'Enabled' : 'Disabled';
   });
   
-  // Add event listener for enter key
-  apiKeyInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      saveBtn.click();
-    }
+  // Add event listener for force enable toggle
+  forceEnableToggle.addEventListener('change', function() {
+    saveForceEnableState(forceEnableToggle.checked);
+    forceStatus.textContent = forceEnableToggle.checked ? 'Enabled' : 'Disabled';
   });
   
-  // Function to save API key
-  function saveApiKey(key) {
-    chrome.storage.sync.set({ geminiApiKey: key }, function() {
-      showStatus('API key saved successfully!', 'success');
+  // Function to save selection toggle state
+  function saveSelectionToggleState(isEnabled) {
+    chrome.storage.sync.set({ selectionHighlightEnabled: isEnabled }, function() {
+      // Send message to content script to update selection state
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "toggleSelection",
+            enabled: isEnabled
+          });
+        }
+      });
     });
   }
   
-  // Function to load saved API key
-  function loadApiKey() {
-    chrome.storage.sync.get(['geminiApiKey'], function(result) {
-      if (result.geminiApiKey) {
-        apiKeyInput.value = result.geminiApiKey;
-        showStatus('API key loaded', 'success');
-      }
+  // Function to save force enable state
+  function saveForceEnableState(isEnabled) {
+    chrome.storage.sync.set({ forceEnableCopy: isEnabled }, function() {
+      // Send message to content script to update force enable state
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if (tabs[0]) {
+          chrome.tabs.sendMessage(tabs[0].id, {
+            action: "toggleForceCopy",
+            enabled: isEnabled
+          });
+        }
+      });
+    });
+  }
+  
+  // Function to load selection toggle state
+  function loadSelectionToggleState() {
+    chrome.storage.sync.get(['selectionHighlightEnabled'], function(result) {
+      // Default to false if not set
+      const isEnabled = result.selectionHighlightEnabled !== undefined ? 
+                        result.selectionHighlightEnabled : false;
+      
+      selectionToggle.checked = isEnabled;
+      toggleStatus.textContent = isEnabled ? 'Enabled' : 'Disabled';
+    });
+  }
+  
+  // Function to load force enable state
+  function loadForceEnableState() {
+    chrome.storage.sync.get(['forceEnableCopy'], function(result) {
+      // Default to false if not set
+      const isEnabled = result.forceEnableCopy !== undefined ? 
+                        result.forceEnableCopy : false;
+      
+      forceEnableToggle.checked = isEnabled;
+      forceStatus.textContent = isEnabled ? 'Enabled' : 'Disabled';
     });
   }
   

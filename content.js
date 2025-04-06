@@ -33,15 +33,28 @@ document.body.appendChild(answerDisplay);
 
 // Variables to store state
 let selectedText = '';
-// YAHAN APNI API KEY DAALO (replace with your actual Gemini API key)
 let apiKey = 'AIzaSyBGkLKichFF6x8SeV6uMmFu2oC9wgjk_tk';
 let isTabPressed = false;
+let isSelectionHighlightEnabled = false;
+let isForceEnableCopyEnabled = false;
 
-// Load API key from storage
-chrome.storage.sync.get(['geminiApiKey'], function(result) {
+// Load settings from storage
+chrome.storage.sync.get(['geminiApiKey', 'selectionHighlightEnabled', 'forceEnableCopy'], function(result) {
   if (result.geminiApiKey) {
     apiKey = result.geminiApiKey;
   }
+  
+  // Load selection highlight setting
+  isSelectionHighlightEnabled = result.selectionHighlightEnabled !== undefined ? 
+                               result.selectionHighlightEnabled : false;
+  
+  // Load force enable copy setting
+  isForceEnableCopyEnabled = result.forceEnableCopy !== undefined ?
+                            result.forceEnableCopy : false;
+  
+  // Apply the settings
+  applySelectionHighlightSetting();
+  applyForceEnableCopySetting();
 });
 
 // Listen for text selections
@@ -148,20 +161,139 @@ document.getElementById('close-answer').addEventListener('click', function() {
   hideAnswerDisplay();
 });
 
-// Listen for messages from background script (context menu)
+// Listen for messages from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "getQuickAnswer" && message.text) {
-    // Set as current selection
     selectedText = message.text;
-    
-    // Get answer (which now shows loading first)
     getAnswer(selectedText);
-    
-    // Acknowledge receipt of message
     sendResponse({status: "processing"});
-    return true; // Keep message channel open for async response
+    return true;
+  } 
+  else if (message.action === "toggleSelection") {
+    isSelectionHighlightEnabled = message.enabled;
+    applySelectionHighlightSetting();
+    sendResponse({status: "applied"});
+    return true;
+  }
+  else if (message.action === "toggleForceCopy") {
+    isForceEnableCopyEnabled = message.enabled;
+    applyForceEnableCopySetting();
+    sendResponse({status: "applied"});
+    return true;
+  }
+  else if (message.action === "resetApiKey") {
+    apiKey = '';
+    sendResponse({status: "reset"});
+    return true;
   }
 });
+
+// Function to apply selection highlight setting
+function applySelectionHighlightSetting() {
+  // Create or update the style element
+  let styleEl = document.getElementById('selection-highlight-style');
+  
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'selection-highlight-style';
+    document.head.appendChild(styleEl);
+  }
+  
+  if (isSelectionHighlightEnabled) {
+    // Enable normal selection highlighting (remove the overriding styles)
+    styleEl.textContent = '';
+  } else {
+    // Disable selection highlighting with CSS
+    styleEl.textContent = `
+      ::selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+      ::-moz-selection {
+        background: transparent !important;
+        color: inherit !important;
+      }
+    `;
+  }
+}
+
+// Function to apply force enable copy setting
+function applyForceEnableCopySetting() {
+  if (isForceEnableCopyEnabled) {
+    enableCopyPaste();
+  } else {
+    // Remove our overrides but don't restore original restrictions
+    removeCopyPasteOverrides();
+  }
+}
+
+// Function to enable copy-paste
+function enableCopyPaste() {
+  const css = `
+    * {
+      -webkit-user-select: text !important;
+      -moz-user-select: text !important;
+      -ms-user-select: text !important;
+      user-select: text !important;
+    }
+  `;
+  
+  let style = document.getElementById('force-copy-style');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'force-copy-style';
+    document.head.appendChild(style);
+  }
+  style.textContent = css;
+  
+  // Override common copy protection methods
+  document.addEventListener('copy', function(e) {
+    e.stopPropagation();
+  }, true);
+  
+  document.addEventListener('cut', function(e) {
+    e.stopPropagation();
+  }, true);
+  
+  document.addEventListener('paste', function(e) {
+    e.stopPropagation();
+  }, true);
+  
+  document.addEventListener('contextmenu', function(e) {
+    e.stopPropagation();
+  }, true);
+  
+  document.addEventListener('selectstart', function(e) {
+    e.stopPropagation();
+  }, true);
+  
+  document.addEventListener('mousedown', function(e) {
+    if (e.detail > 1) { // double/triple click
+      e.stopPropagation();
+    }
+  }, true);
+  
+  // Remove copy protection attributes
+  const elements = document.getElementsByTagName('*');
+  for (let element of elements) {
+    element.style.webkitUserSelect = 'text';
+    element.style.userSelect = 'text';
+    element.removeAttribute('unselectable');
+    element.removeAttribute('oncontextmenu');
+    element.removeAttribute('onselectstart');
+    element.removeAttribute('oncopy');
+    element.removeAttribute('oncut');
+    element.removeAttribute('onpaste');
+  }
+}
+
+// Function to remove our copy-paste overrides
+function removeCopyPasteOverrides() {
+  const style = document.getElementById('force-copy-style');
+  if (style) {
+    style.remove();
+  }
+}
 
 // Function to get just the answer (for Tab key)
 async function getAnswer(text) {

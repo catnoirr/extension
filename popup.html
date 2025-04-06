@@ -8,26 +8,23 @@
   <div class="container">
     <h1>Text Explainer</h1>
     <div class="content">
-      <label for="api-key">Gemini API Key:</label>
-      <input type="password" id="api-key" placeholder="Enter your Gemini API key">
-      <button id="save-btn">Save</button>
-    </div>
-    <div class="instructions">
-      <p>How to use:</p>
-      <ol>
-        <li>Enter your Gemini API key above</li>
-        <li>Select text on any webpage</li>
-        <li>Use one of these methods:
-          <ul>
-            <li><strong>Double-click</strong> the text</li>
-            <li>Press <strong>Alt+E</strong> after selecting text</li>
-            <li>Press <strong>Tab</strong> key after selecting text</li>
-            <li>Click the "Explain" button that appears</li>
-          </ul>
-        </li>
-        <li>View the AI-powered explanation!</li>
-      </ol>
-      <p class="note">Need an API key? <a href="https://aistudio.google.com/app/apikey" target="_blank">Get one here</a></p>
+      <div class="toggle-container">
+        <label for="selection-toggle">Text Selection Highlight:</label>
+        <label class="switch">
+          <input type="checkbox" id="selection-toggle">
+          <span class="slider round"></span>
+        </label>
+        <span id="toggle-status">Disabled</span>
+      </div>
+      
+      <div class="toggle-container">
+        <label for="force-enable-toggle">Force Enable Copy:</label>
+        <label class="switch">
+          <input type="checkbox" id="force-enable-toggle">
+          <span class="slider round"></span>
+        </label>
+        <span id="force-status">Disabled</span>
+      </div>
     </div>
     <div id="status-message"></div>
   </div>

@@ -381,7 +381,7 @@
 }
 
 /* Remove blue selection highlight */
-::selection {
+/* ::selection {
   background: transparent;
   color: inherit;
 }
@@ -389,4 +389,4 @@
 ::-moz-selection {
   background: transparent;
   color: inherit;
-} 
+} */ 
