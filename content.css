@@ -378,4 +378,15 @@
 .answer-fill-notification.success .fill-icon {
   color: white;
   font-weight: bold;
+}
+
+/* Remove blue selection highlight */
+::selection {
+  background: transparent;
+  color: inherit;
+}
+
+::-moz-selection {
+  background: transparent;
+  color: inherit;
 } 
