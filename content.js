@@ -124,6 +124,52 @@ document.addEventListener('dblclick', function(e) {
   }, 100); // Short delay to ensure selection is complete
 });
 
+// Track middle mouse button state
+let isMiddleMouseDown = false;
+
+// Listen for middle mouse button press
+document.addEventListener('mousedown', function(e) {
+  // Check if it's middle mouse button (button 1)
+  if (e.button === 1) {
+    const selection = window.getSelection();
+    selectedText = selection.toString().trim();
+    
+    // If text is selected, prevent default immediately to stop auto-scroll
+    if (selectedText && selectedText.length > 3) {
+      e.preventDefault();
+      e.stopPropagation();
+      isMiddleMouseDown = true;
+      
+      // Hide selection popover
+      selectionPopover.style.display = 'none';
+      
+      // Get answer for the selected text (immediately)
+      getAnswer(selectedText);
+      
+      return false;
+    }
+  }
+}, true);
+
+// Cancel middle mouse tracking on mouseup
+document.addEventListener('mouseup', function(e) {
+  if (e.button === 1 && isMiddleMouseDown) {
+    isMiddleMouseDown = false;
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+}, true);
+
+// Also prevent autoscrolling from auxiliary clicks
+document.addEventListener('auxclick', function(e) {
+  if (e.button === 1 && selectedText && selectedText.length > 3) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }
+}, true);
+
 // Hide popover when clicking elsewhere
 document.addEventListener('mousedown', function(e) {
   if (!selectionPopover.contains(e.target) && 
